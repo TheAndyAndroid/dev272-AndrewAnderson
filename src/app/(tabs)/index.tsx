@@ -1,36 +1,61 @@
 import WorkoutRow from "@/components/WorkoutRow";
-import { workouts } from "@/data/workouts";
+import { useWorkout } from "@/context/WorkoutContext";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+function parseWorkoutDate(date: string): number {
+  const [month, day, year] = date.split("/").map(Number);
+  const fullYear = year < 100 ? 2000 + year : year;
+  return new Date(fullYear, month - 1, day).getTime();
+}
+
 export default function Index() {
+  const { workouts } = useWorkout();
   const [query, setQuery] = useState("");
-  const filteredWorkouts = workouts.filter((workout) => workout.exercise.toLowerCase().includes(query.trim().toLowerCase())
-);
+  const sortedWorkouts = [...workouts].sort((a, b) => {
+    return parseWorkoutDate(b.date) - parseWorkoutDate(a.date)
+  })
+  const filteredWorkouts = sortedWorkouts.filter((workout) => {
+    const searchText = query.trim().toLowerCase();
+    return (
+      workout.exercise.toLowerCase().includes(searchText) || workout.date.toLowerCase().includes(searchText)
+    );
+  });
 
   return (
-    <FlatList
-    data={filteredWorkouts}
-    keyExtractor={(item) => item.id}
-    renderItem={({ item }) =>  (
-      <Link href={{ pathname: "/workouts/[id]", params: { id: item.id }}} asChild>
-        <Pressable>
-          <WorkoutRow workout={item} />
-        </Pressable>
-      </Link>
-    )}
-    ListHeaderComponent={
-    <Header query={query} setQuery={setQuery} onClear={() => setQuery("")}/>
-  }
-  ListEmptyComponent={
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyTitle}>No Exercises Match!</Text>
-      <Text style={styles.emptyText}>Try Searching For A Different Exercise!</Text>
+    <View style={styles.screen}>
+      <FlatList
+        data={filteredWorkouts}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) =>  (
+          <Link href={{ pathname: "/workouts/[id]", params: { id: item.id }}} asChild>
+            <Pressable>
+              <WorkoutRow workout={item} />
+            </Pressable>
+          </Link>
+        )}
+        ListHeaderComponent={
+          <Header query={query} setQuery={setQuery} onClear={() => setQuery("")}/>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>No Exercises Match!</Text>
+            <Text style={styles.emptyText}>Try Searching For A Different Exercise!</Text>
+          </View>
+        }
+        contentContainerStyle={styles.list}
+      />
+      <View style={styles.addButtonContainer}>
+        <Link href="/add" asChild>
+          <Pressable style={({ pressed }) => [ pressed && styles.buttonPressed,]}
+          accessibilityRole="button" accessibilityLabel="Add workout">
+          <Ionicons name="add" size={32} color={"#f6f3f0"}/>
+          </Pressable>
+        </Link>
+      </View>
     </View>
-  }
-    contentContainerStyle={styles.list}
-    />
   );
 }
 
@@ -41,12 +66,12 @@ function  Header({query, setQuery, onClear}:
   onClear: () => void;
 }) { 
   return (
-    <View style={styles.container}>
+    <View style={styles.mainContainer}>
       <Text style={styles.title}>Fitness Tracker</Text>
       <Text style={styles.subTitle}>Keep Track of Your Previous Workouts</Text>
       <View style={styles.workoutSearchbar}>
         <TextInput style={styles.input} 
-        placeholder="Search Workouts..."
+        placeholder="Search Workouts By Name Or Date..."
         placeholderTextColor="#a8a29e"
         value={query}
         onChangeText={setQuery}
@@ -66,10 +91,17 @@ function  Header({query, setQuery, onClear}:
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1
+  },
   list: {
     padding: 15, gap: 20, backgroundColor: "#111111"
   },
-  container: {
+  addButtonContainer: {
+    position: "absolute", bottom: 25, right: 20, width: 60, height: 60, borderRadius: 30, overflow: "hidden",
+    elevation: 5, zIndex: 10, backgroundColor: "#fd6832", alignItems: "center", justifyContent: "center",
+  },
+  mainContainer: {
     flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12,
   },
   title: {

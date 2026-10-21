@@ -1,3 +1,4 @@
+import { workouts as initialWorkouts, type Workout } from "@/data/workouts";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 type CompletedWorkout = {
@@ -6,6 +7,8 @@ type CompletedWorkout = {
 };
 
 type WorkoutContextType = {
+    workouts: Workout[];
+    addWorkout: (workout: Workout) => void;
     completedWorkouts: CompletedWorkout[];
     markWorkoutCompleted: (workoutid: string) => void;
     isWorkoutCompleted: (workoutid: string) => boolean;
@@ -14,32 +17,37 @@ type WorkoutContextType = {
 const WorkoutContext = createContext<WorkoutContextType | null>(null);
 
 export function WorkoutProvider({ children, }: {children: ReactNode}) {
+    const [workouts, setWorkouts] = useState<Workout[]>(initialWorkouts);
     const [completedWorkouts, setCompletedWorkouts] = useState<CompletedWorkout[]>([]);
 
-    function markWorkoutCompleted(workoutid: string) {setCompletedWorkouts((current) => {
-        if (
-            current.some(
-                (workout) => workout.workoutid === workoutid
-            )
-        )   {
-            return current;
-            }
+    function addWorkout(workout: Workout) {
+        setWorkouts((current) => [workout, ...current]);
+    }
 
-        return [
-            ...current,
-            {
-                workoutid, completedDate: new Date().toLocaleDateString(),
-            },
-        ];
-    });
+    function markWorkoutCompleted(workoutid: string) {
+        setWorkouts((current) => current.map((workout) => workout.id === workoutid ?  { ...workout, completed: true } : workout));
+        setCompletedWorkouts((current) => {
+            if (
+                current.some((workout) => workout.workoutid === workoutid)
+            )   {
+                return current;
+                }
+
+            return [
+                ...current,
+                {
+                    workoutid, completedDate: new Date().toLocaleDateString(),
+                },
+            ];
+        });
     }
 
     function isWorkoutCompleted(workoutid: string) {
-        return completedWorkouts.some((workout) => workout.workoutid === workoutid);
+        return workouts.some((workout) => workout.id === workoutid && workout.completed);
         }
 
     return (
-        <WorkoutContext.Provider value={{ completedWorkouts, markWorkoutCompleted, isWorkoutCompleted }}>
+        <WorkoutContext.Provider value={{ workouts, addWorkout, completedWorkouts, markWorkoutCompleted, isWorkoutCompleted }}>
             {children}
         </WorkoutContext.Provider>
     )

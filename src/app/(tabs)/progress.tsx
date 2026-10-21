@@ -1,16 +1,9 @@
 import { useWorkout } from "@/context/WorkoutContext";
-import { Workout, workouts } from "@/data/workouts";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function Progress() {
-    const { completedWorkouts } = useWorkout();
-    const completedWorkoutList: Workout[] = [];
-    for (const workout of workouts) {
-        const foundWorkout = completedWorkouts.find ((item) => item.workoutid === workout.id);
-        if (foundWorkout) {
-            completedWorkoutList.push(workout);
-        }
-            };
+    const { workouts } = useWorkout();
+    const completedWorkoutList = workouts.filter((workout) => workout.completed);
     const totalCompleted = completedWorkoutList.length;
     let totalMinutes = 0;
     for (const workout of completedWorkoutList) {

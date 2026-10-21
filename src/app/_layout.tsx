@@ -6,7 +6,8 @@ export default function RootLayout() {
     <WorkoutProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false}} />
-        <Stack.Screen name="workouts/[id]" options={{ title: "Workout"}} />
+        <Stack.Screen name="workouts/[id]" options={{ title: "Workout" }} />
+        <Stack.Screen name="add" options={{ title: "Add Workout" }} />
     </Stack>
     </WorkoutProvider>
   );

@@ -1,8 +1,14 @@
 export type Workout = {
-    id: string,
-    exercise: string,
-    duration: number, // in total minutes
-    date: string
+    id: string;
+    exercise: string;
+    duration: number; // in total minutes
+    date: string;
+    notes: string;
+    distance: number | null;
+    distanceUnit: "mi" | "km";
+    sets: number | null;
+    reps: number | null;
+    completed: boolean;
 }
 
 export const workouts: Workout[] = [
@@ -10,60 +16,120 @@ export const workouts: Workout[] = [
         id: "1",
         exercise: "Run",
         duration: 45,
-        date: "9/04/26"
+        date: "9/04/26",
+        notes: "Morning Run",
+        distance: 2.56,
+        distanceUnit: "mi",
+        sets: null,
+        reps: null,
+        completed: false,
     },
     {
         id: "2",
         exercise: "Weight Lifting",
         duration: 35,
-        date: "9/06/26"
+        date: "9/06/26",
+        notes: "Upper Body",
+        distance: null,
+        distanceUnit: "mi",
+        sets: 7,
+        reps: 5,
+        completed: false,
     },
     {
         id: "3",
         exercise: "Road Cycling",
         duration: 90,
-        date: "9/09/26"
+        date: "9/09/26",
+        notes: "Long Ride",
+        distance: 10.46,
+        distanceUnit: "mi",
+        sets: null,
+        reps: null,
+        completed: false,
     },
     {
         id: "4",
         exercise: "Walk",
         duration: 25,
-        date: "9/11/26"
+        date: "9/11/26",
+        notes: "Too Short",
+        distance: 1.55,
+        distanceUnit: "mi",
+        sets: null,
+        reps: null,
+        completed: false,
     },
     {
         id: "5",
         exercise: "Weight Lifting",
         duration: 60,
-        date: "9/12/26"
+        date: "9/12/26",
+        notes: "Leg Day",
+        distance: null,
+        distanceUnit: "mi",
+        sets: 10,
+        reps: 8,
+        completed: false,
     },
     {
         id: "6",
         exercise: "Run",
         duration: 50,
-        date: "9/15/26"
+        date: "9/15/26",
+        notes: "Steady Pace",
+        distance: 10.46,
+        distanceUnit: "km",
+        sets: null,
+        reps: null,
+        completed: false,
     },
     {
         id: "7",
         exercise: "Walk",
-        duration: 25,
-        date: "9/17/26"
+        duration: 40,
+        date: "9/17/26",
+        notes: "",
+        distance: 3.75,
+        distanceUnit: "km",
+        sets: null,
+        reps: null,
+        completed: false,
     },
     {
         id: "8",
         exercise: "Run (Treadmill)",
         duration: 75,
-        date: "9/19/26"
+        date: "9/19/26",
+        notes: "Increase Incline",
+        distance: 6.25,
+        distanceUnit: "mi",
+        sets: null,
+        reps: null,
+        completed: false,
     },
     {
         id: "9",
         exercise: "Road Cycling",
         duration: 80,
-        date: "9/22/26"
+        date: "9/22/26",
+        notes: "",
+        distance: 14.08,
+        distanceUnit: "km",
+        sets: null,
+        reps: null,
+        completed: false,
     },
     {
         id: "10",
         exercise: "Weight Lifting",
-        duration: 35,
-        date: "9/23/26"
+        duration: 55,
+        date: "9/23/26",
+        notes: "Full Body",
+        distance: null,
+        distanceUnit: "mi",
+        sets: 5,
+        reps: 15,
+        completed: false,
     }
 ];
