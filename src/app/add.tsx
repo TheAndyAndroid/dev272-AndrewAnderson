@@ -86,7 +86,7 @@ export default function AddWorkout() {
                     <View style={styles.addField}>
                         <Text style={styles.addLabel}>Duration (Minutes)</Text>
                         <Controller control={control} name="duration" render={({ field: { value, onChange, onBlur } }) => (
-                            <TextInput style={styles.textInput} placeholder="(Ex: 45)" placeholderTextColor="#fcf8f3"
+                            <TextInput style={styles.textInput} placeholder="(Ex: 45)" placeholderTextColor="#7c7c7c"
                             value={value} onChangeText={(text) => {onChange(text); }} onBlur={onBlur} 
                             keyboardType="numeric" />
                         )} />
@@ -99,7 +99,7 @@ export default function AddWorkout() {
                             <View style={styles.addField}>
                                 <Text style={styles.addLabel}>Distance</Text>
                                 <Controller control={control} name="distance" render={({ field: { value, onChange, onBlur } }) => (
-                                    <TextInput style={styles.textInput} placeholder="(Ex: 2.5)" placeholderTextColor="#fcf8f3"
+                                    <TextInput style={styles.textInput} placeholder="(Ex: 2.5)" placeholderTextColor="#7c7c7c"
                                     value={value} onChangeText={onChange} onBlur={onBlur} keyboardType="decimal-pad" /> )} 
                                 />
                                 {errors.distance && ( <Text style={styles.errorText}> {errors.distance.message} </Text> )}
@@ -127,7 +127,7 @@ export default function AddWorkout() {
                             <View style={styles.addField}>
                                 <Text style={styles.addLabel}>Sets</Text>
                                 <Controller control={control} name="sets" render={({ field: { value, onChange, onBlur } }) => (
-                                    <TextInput style={styles.textInput} placeholder="(Ex: 5)" placeholderTextColor="#fcf8f3"
+                                    <TextInput style={styles.textInput} placeholder="(Ex: 5)" placeholderTextColor="#7c7c7c"
                                     value={value} onChangeText={onChange} onBlur={onBlur} keyboardType="number-pad" /> )} 
                                 />
                                 {errors.sets && ( <Text style={styles.errorText}> {errors.sets.message} </Text> )}
@@ -136,7 +136,7 @@ export default function AddWorkout() {
                             <View style={styles.addField}>
                                 <Text style={styles.addLabel}>Reps</Text>
                                 <Controller control={control} name="reps" render={({ field: { value, onChange, onBlur } }) => (
-                                    <TextInput style={styles.textInput} placeholder="(Ex: 10)" placeholderTextColor="#fcf8f3"
+                                    <TextInput style={styles.textInput} placeholder="(Ex: 10)" placeholderTextColor="#7c7c7c"
                                     value={value} onChangeText={onChange} onBlur={onBlur} keyboardType="number-pad" /> )} 
                                 />
                                 {errors.reps && ( <Text style={styles.errorText}> {errors.reps.message} </Text> )}
@@ -148,7 +148,7 @@ export default function AddWorkout() {
                     <View style={styles.addField}>
                         <Text style={styles.addLabel}>Date Of Workout</Text>
                         <Controller control={control} name="date" render={({ field: { value, onChange, onBlur } }) => (
-                            <TextInput style={styles.textInput} placeholder="(Ex: MM/DD/YY)" placeholderTextColor="#fcf8f3"
+                            <TextInput style={styles.textInput} placeholder="(Ex: MM/DD/YY)" placeholderTextColor="#7c7c7c"
                             value={value} onChangeText={onChange} onBlur={onBlur} />
                         )} />
                         {errors.date && ( <Text style={styles.errorText}> {errors.date.message} </Text> )}
@@ -159,7 +159,7 @@ export default function AddWorkout() {
                         <Text style={styles.addLabel}>Additional Notes</Text>
                         <Controller control={control} name="notes" render={({ field: { value, onChange, onBlur } }) => (
                             <TextInput style={[styles.textInput, styles.notesInput]} placeholder="Enter Workout Notes..." 
-                            placeholderTextColor={"#fcf8f3"} value={value} onChangeText={(text) => {onChange(text); }} 
+                            placeholderTextColor={"#7c7c7c"} value={value} onChangeText={(text) => {onChange(text); }} 
                             onBlur={onBlur} multiline textAlignVertical="top" maxLength={NOTES_LIMIT}/>
                         )} />
                         <Text style={styles.characterCount}>{notes.length}/{NOTES_LIMIT} characters</Text>

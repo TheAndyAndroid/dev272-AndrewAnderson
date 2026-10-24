@@ -1,7 +1,7 @@
 import WorkoutRow from "@/components/WorkoutRow";
 import { useWorkout } from "@/context/WorkoutContext";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useState } from "react";
 import { FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -48,12 +48,10 @@ export default function Index() {
         contentContainerStyle={styles.list}
       />
       <View style={styles.addButtonContainer}>
-        <Link href="/add" asChild>
-          <Pressable style={({ pressed }) => [ pressed && styles.buttonPressed,]}
+          <Pressable onPress={() => router.push("/add")} style={({ pressed }) => [ pressed && styles.buttonPressed,]}
           accessibilityRole="button" accessibilityLabel="Add workout">
           <Ionicons name="add" size={32} color={"#f6f3f0"}/>
           </Pressable>
-        </Link>
       </View>
     </View>
   );
