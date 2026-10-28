@@ -1,22 +1,63 @@
-import { useWorkout } from "@/context/WorkoutContext";
+import { completeWorkout, fetchWorkout } from "@/api/workouts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function WorkoutDetail() {
     const { id } = useLocalSearchParams<{id: string}>();
-    const { workouts, markWorkoutCompleted, isWorkoutCompleted} = useWorkout();
-    const workout = workouts.find((item) => item.id === id);
+    const queryClient = useQueryClient();
+    const { data: workout, isLoading, isError, refetch } = useQuery({
+        queryKey: ["workouts", id], queryFn: () => fetchWorkout(id),
+        enabled: Boolean(id),
+    });
+    const completeMutation = useMutation({mutationFn: () => completeWorkout(id), onSuccess: async () => {
+        await queryClient.invalidateQueries({
+                queryKey: ["workouts"],
+            }),
+            queryClient.invalidateQueries({
+                queryKey: ["workouts", id],
+            })
+        router.replace("/(tabs)/progress")
+    },
+    onError: (error) => {
+        Alert.alert(
+            "Could Not Complete Workout!", error.message
+        );
+    },
+});
 
-    if (!workout) {
+    if (isLoading) {
         return (
-            <View style={styles.notFound}>
-                <Text style={styles.notFoundTitle}>Workout Not Found</Text>
-                <Text style={styles.notFoundText}>Can't find a workout with {id}</Text>
+            <View style={styles.messageContainer}>
+                <ActivityIndicator size="large" color={"#fd6832"} />
+                <Text style={styles.messageText}>Loading Workout...</Text>
             </View>
         );
     }
 
-    const completed = isWorkoutCompleted(workout.id);
+    if (isError) {
+        return (
+            <View style={styles.messageContainer}>
+                <Text style={styles.emptyTitle}>Could Not Load Workout!</Text>
+                <Text style={styles.messageText}>Check Internet Connection, Then Try Again!</Text>
+                <Pressable style={styles.retryButton} onPress={() => refetch()}>
+                    <Text style={styles.buttonText}>Try Again!</Text>
+                </Pressable>
+            </View>
+        );
+    }
+
+    if (!workout) {
+        return (
+            <View style={styles.messageContainer}>
+                <Text style={styles.emptyTitle}>Workout Not Found!</Text>
+                <Text style={styles.messageText}>This Workout Cannot Be Found As It's Either Removed or Invalid!</Text>
+                <Pressable style={styles.retryButton} onPress={() => router.back()}>
+                    <Text style={styles.buttonText}>Go Back</Text>
+                </Pressable>
+            </View>
+        );
+    }
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -33,7 +74,7 @@ export default function WorkoutDetail() {
             {workout.distance !== null && (
             <View style={styles.card}>
                 <Text style={styles.cardLabel}>Distance</Text>
-                <Text style={styles.cardValue}>{workout.distance.toFixed(2)} {workout.distanceUnit}</Text>
+                <Text style={styles.cardValue}>{workout.distance.toFixed(2)}{" "} {workout.distance_unit}</Text>
             </View>
             )}
             {workout.sets !== null && (
@@ -60,14 +101,15 @@ export default function WorkoutDetail() {
             </View>
             <View style={styles.card}>
                 <Text style={styles.cardLabel}>Workout Status</Text>
-                <Text style={[styles.cardValue, { color: completed ? "#37a056" : "#ff4026" }]}>{completed ? "Completed ✓" : "Not Completed ✗"}</Text>
+                <Text style={[styles.cardValue, { color: workout.completed ? "#37a056" : "#ff4026" }]}>
+                {workout.completed ? "Completed ✓" : "Not Completed ✗"}</Text>
             </View>
-            {!completed && (
+            {!workout.completed && (
                 <>
-                <Text style={styles.miniLabel}>Click the button to add this exercise to the statistics page</Text>
-                <Pressable onPress={() => {markWorkoutCompleted(workout.id); router.replace("/(tabs)/progress")}}
-                style={({ pressed }) => [styles.completeButton, pressed && styles.buttonPressed,]}>
-                <Text style={styles.completedButtonText}>Mark Workout Complete</Text>
+                <Text style={styles.miniLabel}>Click The Button To Add Workout To Statistic Page!</Text>
+                <Pressable style={({ pressed }) => [styles.completeButton, completeMutation.isPending && styles.buttonDisabled,
+                pressed && styles.buttonPressed]} disabled={completeMutation.isPending} onPress={() => completeMutation.mutate()}>
+                <Text style={styles.completedButtonText}>{completeMutation.isPending ? "Saving..." : "Mark Workout Complete"}</Text>
                 </Pressable>
                 </>
             )}
@@ -112,18 +154,27 @@ const styles = StyleSheet.create({
         })
     },
     buttonPressed: {
-        opacity: 0.5,
+        opacity: 0.6,
+    },
+    buttonDisabled: {
+        opacity: 0.3,
     },
     completedButtonText: {
         color: "#fffaf4", fontSize: 15, fontWeight: "600"
     },
-    notFound: {
-        flex: 1, backgroundColor: "#111111", justifyContent: "center", alignItems: "center", padding: 30,
+    messageContainer: {
+        flex: 1, backgroundColor: "#111111", justifyContent: "center", alignItems: "center", 
     },
-    notFoundTitle: {
-        color: "#fcf8f3", fontSize: 25, fontWeight: "600",
+    messageText: {
+        color: "#fcf8f3", fontSize: 12, textAlign: "center", 
     },
-    notFoundText: {
-        color: "#97918a", fontSize: 15, marginTop: 10, textAlign: "center",
+    emptyTitle: {
+        color: "#fcf8f3", fontSize: 18, fontWeight: "600", textAlign: "center",
     },
+    retryButton: {
+        backgroundColor: "#fd6832", borderRadius: 8, alignItems: "center",
+    },
+    buttonText: {
+        color: "#fffaf4", fontSize: 12, fontWeight: "600",
+    }
 });

@@ -1,65 +1,49 @@
-import { workouts as initialWorkouts, type Workout } from "@/data/workouts";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { loadJson, saveJson } from "@/lib/storage";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-type CompletedWorkout = {
-    workoutid: string;
-    completedDate: string;
-};
+type SortOrder = "newest" | "oldest";
 
 type WorkoutContextType = {
-    workouts: Workout[];
-    addWorkout: (workout: Workout) => void;
-    completedWorkouts: CompletedWorkout[];
-    markWorkoutCompleted: (workoutid: string) => void;
-    isWorkoutCompleted: (workoutid: string) => boolean;
+    sortOrder: "newest" | "oldest";
+    setSortOrder: (order: SortOrder) => void;
 };
 
 const WorkoutContext = createContext<WorkoutContextType | null>(null);
 
 export function WorkoutProvider({ children, }: {children: ReactNode}) {
-    const [workouts, setWorkouts] = useState<Workout[]>(initialWorkouts);
-    const [completedWorkouts, setCompletedWorkouts] = useState<CompletedWorkout[]>([]);
+    const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+    const [hydrated, setHydrated] = useState(false);
 
-    function addWorkout(workout: Workout) {
-        setWorkouts((current) => [workout, ...current]);
-    }
-
-    function markWorkoutCompleted(workoutid: string) {
-        setWorkouts((current) => current.map((workout) => workout.id === workoutid ?  { ...workout, completed: true } : workout));
-        setCompletedWorkouts((current) => {
-            if (
-                current.some((workout) => workout.workoutid === workoutid)
-            )   {
-                return current;
-                }
-
-            return [
-                ...current,
-                {
-                    workoutid, completedDate: new Date().toLocaleDateString(),
-                },
-            ];
-        });
-    }
-
-    function isWorkoutCompleted(workoutid: string) {
-        return workouts.some((workout) => workout.id === workoutid && workout.completed);
+    useEffect(() => {
+        async function loadSortOrder() {
+            const savedOrder =  await loadJson<"newest" | "oldest">(
+                "workout-sort-order", "newest"
+            );
+            setSortOrder(savedOrder);
+            setHydrated(true);
         }
+        loadSortOrder();
+    }, []);
+
+    useEffect(() => {
+        if (hydrated) {
+            saveJson("workout-sort-order", sortOrder);
+        }
+    }, [sortOrder, hydrated]);
 
     return (
-        <WorkoutContext.Provider value={{ workouts, addWorkout, completedWorkouts, markWorkoutCompleted, isWorkoutCompleted }}>
-            {children}
+        <WorkoutContext.Provider value={{ sortOrder, setSortOrder }}>
+            { children }
         </WorkoutContext.Provider>
-    )
-};
+    );
+}
 
 export function useWorkout() {
     const context = useContext(WorkoutContext);
-
     if (!context) {
         throw new Error(
             "useWorkout must be used inside WorkoutProvider"
         );
     }
     return context;
-};
+}

@@ -157,3 +157,90 @@ Put components, hooks, and utilities in `src/` next to `app/` (for example `src/
 | `.vscode/settings.json` | Turns off Copilot inline completions for this workspace. |
 
 If an AI tool starts writing code for you anyway, stop, and ask it to explain instead. That is the tool ignoring the rules, and the grade is still yours.
+
+## 11. Supabase Table Setup Instructions
+
+### 1. Create `.env` file in the project root directory.
+
+### 2. Add your Supabase Credentials:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
+EXPO_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
+```
+*Note: Replace the placeholder values with your own Supabase project credentials
+
+### 3.  Add `.env` to your `.gitignore` file. Check that git status does not list it by using `git status` to in the terminal.
+
+### 4. Add this SQL script in the SQL Editor in the project dashboard:
+
+```sql
+-- Fitness Tracker
+
+-- 1. Create Workout Table
+create table public.workouts (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  exercise text not null,
+  duration integer not null,
+  date text not null,
+  notes text not null default '',
+  distance numeric,
+  distance_unit text not null default 'mi',
+  sets integer,
+  reps integer,
+  completed boolean not null default false,
+
+-- Check constraints
+  constraint exercise_not_empty check (length(trim(exercise)) > 0),
+  constraint duration_positive check (duration > 0),
+  constraint valid_distance check (distance is null or distance > 0),
+  constraint valid_distance_unit check (distance_unit in ('mi', 'km')),
+  constraint valid_sets check (sets is null or sets > 0),
+  constraint valid_reps check (reps is null or reps > 0)
+);
+
+-- 2. Permissions
+grant select, insert on public.workouts to anon;
+
+-- 3. Security
+alter table public.workouts enable row level security;
+
+create policy "Anyone Can Read Workouts"
+  on public.workouts for select
+  to anon
+  using (true);
+
+create policy "Anyone Can Edit Workouts"
+  on public.workouts for insert
+  to anon
+  with check (true);
+
+-- This allows workouts to be marked completed
+
+grant update on public.workouts to anon;
+
+create policy "Anyone Can Update Workouts"
+  on public.workouts for update
+  to anon
+  using (true)
+  with check (true);
+
+-- 4. Seed Rows (10 Sample Records from Week 2-4)
+insert into public.workouts (exercise, duration, date, notes, distance, distance_unit, sets, reps, completed)
+values 
+('Run', 45, '9/04/26', 'Morning Run', 2.56, 'mi', null, null, false),
+('Weight Lifting', 35, '9/06/26', 'Upper Body', null, 'mi', 7, 5, false),
+('Road Cycling', 90, '9/09/26', 'Long Ride', 10.46, 'mi', null, null, false),
+('Walk', 25, '9/11/26', 'Too Short', 1.55, 'mi', null, null, false),
+('Weight Lifting', 60, '9/12/26', 'Leg Day', null, 'mi', 10, 8, false),
+('Run', 50, '9/15/26', 'Steady Pace', 10.46, 'km', null, null, false),
+('Walk', 40, '9/17/26', '', 3.75, 'km', null, null, false),
+('Run (Treadmill)', 75, '9/19/26', 'Increase Incline', 6.25, 'mi', null, null, false),
+('Road Cycling', 80, '9/22/26', '', 14.08, 'km', null, null, false),
+('Weight Lifting', 55, '9/23/26', 'Full Body', null, 'mi', 5, 15, false);
+```
+
+### 5. Click run to create table that checks constraints, allows permissions, enables RLS security, and inserts Seed data previously used in prior weeks.
+
+### 6. Use `pnpm start` in the terminal to run the app and `pnpm exec tsc --noEmit` to check for TypeScript errors.

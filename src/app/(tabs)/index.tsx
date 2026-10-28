@@ -1,9 +1,11 @@
+import { fetchAllWorkouts } from "@/api/workouts";
 import WorkoutRow from "@/components/WorkoutRow";
 import { useWorkout } from "@/context/WorkoutContext";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useQuery } from "@tanstack/react-query";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Platform, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 
 function parseWorkoutDate(date: string): number {
   const [month, day, year] = date.split("/").map(Number);
@@ -12,17 +14,45 @@ function parseWorkoutDate(date: string): number {
 }
 
 export default function Index() {
-  const { workouts } = useWorkout();
   const [query, setQuery] = useState("");
+  const { sortOrder, setSortOrder } = useWorkout();
+  const {
+    data: workouts = [],
+    isLoading, isError, refetch, isRefetching,
+  } = useQuery({ queryKey: ["workouts"], queryFn: fetchAllWorkouts});
   const sortedWorkouts = [...workouts].sort((a, b) => {
-    return parseWorkoutDate(b.date) - parseWorkoutDate(a.date)
-  })
+    const dateA = parseWorkoutDate(a.date);
+    const dateB = parseWorkoutDate(b.date);
+    return sortOrder === "newest"
+    ? dateB - dateA : dateA - dateB;
+  });
   const filteredWorkouts = sortedWorkouts.filter((workout) => {
     const searchText = query.trim().toLowerCase();
     return (
       workout.exercise.toLowerCase().includes(searchText) || workout.date.toLowerCase().includes(searchText)
     );
   });
+
+  if (isLoading) {
+    return (
+      <View style={styles.messageContainer}>
+        <ActivityIndicator size="large" color="#fd6832" />
+        <Text style={styles.messageText}>Loading Workouts...</Text>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.messageContainer}>
+        <Text style={styles.emptyTitle}>Could Not Load Workouts!</Text>
+        <Text style={styles.messageText}>Please Check Internet Connection and Try Again!</Text>
+        <Pressable style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.buttonText}>Try Again!</Text>
+        </Pressable>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.screen}>
@@ -36,14 +66,22 @@ export default function Index() {
             </Pressable>
           </Link>
         )}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={"#fd6832"}
+            colors={["#fd6832"]}
+          />
+        }
         ListHeaderComponent={
-          <Header query={query} setQuery={setQuery} onClear={() => setQuery("")}/>
+          <Header query={query} setQuery={setQuery} onClear={() => setQuery("")} sortOrder={sortOrder} setSortOrder={setSortOrder}/>
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No Exercises Match!</Text>
-            <Text style={styles.emptyText}>Try Searching For A Different Exercise!</Text>
-          </View>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>{workouts.length === 0 ? "No Exercises Yet!" : "No Workouts Match!"}</Text>
+              <Text style={styles.emptyText}>{workouts.length === 0 ? "Add A Workout To Begin!" : "Try Searching For A Different Workout!"}</Text>
+            </View>
         }
         contentContainerStyle={styles.list}
       />
@@ -57,11 +95,13 @@ export default function Index() {
   );
 }
 
-function  Header({query, setQuery, onClear}:
+function  Header({query, setQuery, onClear, sortOrder, setSortOrder}:
 {
   query: string;
   setQuery: (query: string) => void;
   onClear: () => void;
+  sortOrder: "newest" | "oldest";
+  setSortOrder: (order: "newest" | "oldest") => void;
 }) { 
   return (
     <View style={styles.mainContainer}>
@@ -82,6 +122,17 @@ function  Header({query, setQuery, onClear}:
         </Pressable>
       </View>
       <Text style={styles.characterLength}>{query.length} characters</Text>
+      <Text style={styles.sortLabel}>Sort Workouts</Text>
+      <View style={styles.sortRow}>
+        <Pressable onPress={() => setSortOrder("newest")} style={[styles.sortButton, sortOrder === "newest" && styles.selectedSortButton]}
+        accessibilityRole="button" accessibilityState={{selected: sortOrder === "newest"}}>
+          <Text style={styles.buttonText}>Newest First</Text>
+        </Pressable>
+        <Pressable onPress={() => setSortOrder("oldest")} style={[styles.sortButton, sortOrder === "oldest" && styles.selectedSortButton]}
+        accessibilityRole="button" accessibilityState={{selected: sortOrder === "oldest"}}>
+          <Text style={styles.buttonText}>Oldest First</Text>
+        </Pressable>
+      </View>
       <Text style={styles.sectionTitle}>Previous Sessions</Text>
       <Text style={styles.sectionSubTitle}>Click on a card to view additional details for a workout</Text>
     </View>
@@ -134,6 +185,18 @@ const styles = StyleSheet.create({
   characterLength: {
     alignSelf: "flex-start", paddingLeft: 2, fontSize: 12, color: "#97918a"
   },
+  sortLabel: {
+    alignSelf: "center", color: "#fcf8f3", fontSize: 17, fontWeight: "600",
+  },
+  sortRow: {
+    alignSelf: "center", flexDirection: "row", gap: 10, 
+  },
+  sortButton: {
+    padding: 10, borderRadius: 8, backgroundColor: "#414141",
+  },
+  selectedSortButton: {
+    backgroundColor: "#fd6832",
+  },
   sectionTitle: {
     fontSize: 20, fontWeight: "400", textDecorationLine: "underline", marginTop: 12,
     color: "#fcf8f3"
@@ -151,4 +214,13 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#97918a", fontSize: 14, textAlign: "center", marginTop: 8,
   },
+  messageContainer: {
+    flex: 1, backgroundColor: "#111111", justifyContent: "center", alignItems: "center", padding: 25, gap: 15, 
+  },
+  messageText: {
+    color: "#fcf8f3", fontSize: 15, textAlign: "center",
+  },
+  retryButton: {
+    borderRadius: 8, backgroundColor: "#fd6832",
+  }
 });

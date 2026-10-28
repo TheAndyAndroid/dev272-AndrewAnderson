@@ -1,18 +1,27 @@
-import { useWorkout } from "@/context/WorkoutContext";
-import { Workout } from "@/data/workouts";
+import { createWorkout, type NewWorkout } from "@/api/workouts";
 import { WorkoutFormValues, workoutSchema } from "@/utils/validateWorkout";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Picker } from "@react-native-picker/picker";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router, Stack } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 const NOTES_LIMIT = 250;
 const EXERCISES = ["Run", "Run (Treadmill)", "Walk", "Road Cycling", "Weight Lifting", "Other",];
 const CARDIO_EXERCISES = ["Run", "Run (Treadmill)", "Walk", "Road Cycling",];
 
 export default function AddWorkout() {
-    const { addWorkout, markWorkoutCompleted } = useWorkout();
+    const queryClient = useQueryClient();
+    const createMutation = useMutation({
+        mutationFn: createWorkout,
+        onSuccess: async (savedWorkouts) => {
+            await queryClient.invalidateQueries({ queryKey: ["workouts"],
+            }),
+            router.replace({ pathname: "/workouts/[id]", params: { id: savedWorkouts.id },});
+        },
+        onError: (error) => {Alert.alert("Could Not Save Workout!", error.message);},
+    });
 
     const {
         control, handleSubmit, watch, clearErrors, reset, formState: { errors }, } = useForm<WorkoutFormValues>({
@@ -37,25 +46,18 @@ export default function AddWorkout() {
         function onValidSubmit(data: WorkoutFormValues) {
             const isCardio = CARDIO_EXERCISES.includes(data.exercise);
             const isWeightLifting = data.exercise === "Weight Lifting"
-            const newWorkoutId = Date.now().toString();
-            const newWorkout: Workout = {
-                id: newWorkoutId,
+            const newWorkout: NewWorkout = {
                 exercise: data.exercise,
                 duration: Number(data.duration),
-                distance: isCardio ? Number(data.distance) : null,
-                distanceUnit: data.distanceUnit ?? "mi",
-                sets: isWeightLifting ? Number(data.sets) : null,
-                reps: isWeightLifting ? Number(data.reps) : null,
                 date: data.date,
                 notes: data.notes,
+                distance: isCardio ? Number(data.distance) : null,
+                distance_unit: data.distanceUnit,
+                sets: isWeightLifting ? Number(data.sets) : null,
+                reps: isWeightLifting ? Number(data.reps) : null,
                 completed: data.completed,
             };
-            addWorkout(newWorkout);
-            if (data.completed) {
-                markWorkoutCompleted(newWorkout.id);
-            }
-            router.replace({ pathname: "/workouts/[id]", params: { id: newWorkoutId }
-            });
+            createMutation.mutate(newWorkout);
         }
 
     return (
@@ -179,9 +181,10 @@ export default function AddWorkout() {
                     </View>
                     
                     {/* Add Workout Button */}
-                    <Pressable style={({ pressed }) => [styles.addButton, pressed && 
-                    styles.buttonPressed]} onPress={handleSubmit(onValidSubmit)} accessibilityRole="button" accessibilityLabel="Add Workout">
-                        <Text style={styles.addButtonText}>Add Workout</Text>
+                    <Pressable style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed, createMutation.isPending && 
+                    { opacity: 0.5},]} onPress={handleSubmit(onValidSubmit)} disabled={createMutation.isPending}
+                    accessibilityRole="button" accessibilityLabel="Add Workout">
+                        <Text style={styles.addButtonText}>{createMutation.isPending ? "Adding..." : "Add Workout"}</Text>
                     </Pressable>
             </ScrollView>
         </KeyboardAvoidingView>

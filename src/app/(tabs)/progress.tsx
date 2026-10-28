@@ -1,8 +1,34 @@
-import { useWorkout } from "@/context/WorkoutContext";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { fetchAllWorkouts } from "@/api/workouts";
+import { useQuery } from "@tanstack/react-query";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function Progress() {
-    const { workouts } = useWorkout();
+    const {
+        data: workouts = [],
+        isLoading,
+        isError,
+        refetch,
+    } = useQuery({queryKey: ["workouts"], queryFn: fetchAllWorkouts});
+
+    if (isLoading) {
+            return (
+                <View style={styles.container}>
+                    <ActivityIndicator size="large" color={"#fd6832"} />
+                    <Text style={styles.emptyText}>Loading Progress</Text>
+                </View>
+            );
+        }
+    
+        if (isError) {
+            return (
+                <View style={styles.container}>
+                    <Text style={styles.emptyTitle}>Could Not Load Workout Progress!</Text>
+                    <Text style={styles.emptyText}>Check Internet Connection, Then Try Again!</Text>
+                    <Text onPress={() => refetch()} style={styles.sectionTitle}>Press To Reload</Text>
+                </View>
+            );
+        }
+
     const completedWorkoutList = workouts.filter((workout) => workout.completed);
     const totalCompleted = completedWorkoutList.length;
     let totalMinutes = 0;

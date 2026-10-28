@@ -1,4 +1,4 @@
-import { Workout } from "@/data/workouts";
+import { WorkoutRow as Workout } from "@/api/workouts";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function WorkoutRow({ workout }: { workout: Workout }) {
