@@ -8,7 +8,9 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Workout List",
-          tabBarIcon: ({ color, size }) => <Ionicons name="barbell-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="barbell-outline" color={color} size={size} />
+          ),
         }}
       />
 
@@ -16,9 +18,11 @@ export default function TabLayout() {
         name="progress"
         options={{
           title: "Workout Statistics",
-          tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="stats-chart-outline" color={color} size={size} />
+          ),
         }}
       />
     </Tabs>
   );
-};
+}
