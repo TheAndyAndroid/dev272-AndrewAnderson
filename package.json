@@ -59,7 +59,7 @@
     "lint": "expo lint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format-check": "prettier --check .",
+    "format:check": "prettier --check .",
     "test": "jest",
     "test:watch": "jest --watch",
     "prepare": "husky"
