@@ -244,3 +244,60 @@ values
 ### 5. Click run to create table that checks constraints, allows permissions, enables RLS security, and inserts Seed data previously used in prior weeks.
 
 ### 6. Use `pnpm start` in the terminal to run the app and `pnpm exec tsc --noEmit` to check for TypeScript errors.
+
+## 12. Project Scripts
+
+The following commands are used to test, format, and check the Fitness Tracking App
+### 1. Start App
+
+```bash
+pnpm start
+```
+Starts The Expo Server To Run App On Mobile Phone
+
+### 2. ESLint
+
+```bash
+pnpm lint
+```
+Checks Project Files For ESLint Errors
+
+```bash
+pnpm lint:fix
+```
+Automatically Fixes ESLint Errors
+
+### 3. Prettier
+
+```bash
+pnpm format
+```
+Formats Project Files Using Prettier
+
+```bash
+pnpm format:check
+```
+Checks All Projects Files Follows Prettier Formatting Rules
+
+### 4. TypeScript
+
+```bash
+pnpm exec tsc --noEmit
+```
+Checks The Project Files For TypeScripts Errors
+
+### 5. Testing
+
+```bash
+pnpm test
+```
+Runs All Jest Tests For Schema, Component, And Home Screen
+
+### 6. Husky Pre Commit Hook
+
+Husky Automatically Runs These Following Checks Before Each Commit
+
+- pnpm lint (ESLint)
+- pnpm format:check (Prettier)
+- pnpm exec tsc --noEmit (TypeScript)
+- pnpm test (Jest)
